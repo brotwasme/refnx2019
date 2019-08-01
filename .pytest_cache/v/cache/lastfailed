@@ -1,0 +1,5 @@
+{
+  "refnx/_lib/test/test_util.py": true,
+  "refnx/reduce/test/test_rebin.py": true,
+  "refnx/reflect/_app/test/test_app.py": true
+}
