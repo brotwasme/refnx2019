@@ -1,0 +1,71 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Try the new cross-platform PowerShell https://aka.ms/pscore6
+
+PS C:\Users\John\Documents\programing> ls                                 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+    Directory: C:\Users\John\Documents\programing
+
+
+Mode                LastWriteTime         Length Name
+----                -------------         ------ ----
+d-----       12/03/2018     17:28                .anaconda
+d-----       01/08/2019     01:55                .conda
+d-----       15/03/2019     17:14                .idlerc
+d-----       01/08/2019     00:43                .ipynb_checkpoints
+d-----       15/03/2019     16:29                .ipython
+d-----       23/03/2019     12:17                .jupyter
+d-----       01/08/2019     00:54                .matplotlib
+d-----       07/02/2019     17:31                .pylint.d
+d-----       01/08/2019     00:25                .spyder-py3
+d-----       04/10/2018     16:38                .vscode
+d-----       21/07/2019     00:07                2d-strat
+d-----       22/05/2019     18:46                3dnew
+d-----       04/11/2018     15:35                c++
+d-----       22/05/2019     19:30                learn3d
+d-----       26/01/2019     19:19                modeling visual
+d-----       21/05/2019     13:53                New Game Project
+d-----       27/05/2019     21:55                new_strat
+d-----       31/05/2019     15:44                proto_strat
+d-----       04/11/2018     15:35                python
+d-----       31/05/2019     15:45                strat
+d-----       01/08/2019     01:49                summer2019               <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+d-----       15/03/2019     19:43                __pycache__
+-a----       01/08/2019     01:28             43 .condarc
+-a----       08/10/2018     18:11            180 .gitconfig
+-a----       19/05/2019     19:45         518332 ball_creature.blend
+-a----       19/07/2019     22:59         536264 castle.blend
+-a----       19/07/2019     22:58         536264 castle.blend1
+-a----       15/03/2019     19:43          39422 cp2.py
+-a----       26/05/2019     17:22         434920 female.blend
+-a----       26/05/2019     17:18         431048 female.blend1
+-a----       26/05/2019     17:31         429980 femalemirror.blend
+-a----       26/05/2019     17:22         428348 femalemirror.blend1
+-a----       04/07/2019     13:14         458780 femalemirror2.blend
+-a----       26/05/2019     18:08         439836 femalemirror2.blend1
+-a----       13/02/2019     20:26          25610 HCGd.png
+-a----       13/02/2019     21:06          24834 HCKd.png
+-a----       17/05/2019     20:19         547236 idontknow.blend
+-a----       13/02/2019     19:16          30613 MGd.png
+-a----       19/05/2019     10:42         512660 mushroom.blend
+-a----       18/05/2019     13:08         531028 plate.blend
+-a----       15/02/2019     05:31          90503 pvfitting.png
+-a----       13/02/2019     19:22          23226 SGd.png
+-a----       19/05/2019     20:28         492932 tank.blend
+-a----       13/02/2019     19:15          26253 TEGd.png
+-a----       13/02/2019     19:21          27202 TEKd.png
+-a----       05/07/2019     19:02         518252 tree.blend
+-a----       20/07/2019     22:33         462356 tree2.blend
+-a----       17/05/2019     16:06         569600 untitled.blend
+-a----       17/05/2019     16:06         569600 untitled.blend1
+
+
+PS C:\Users\John\Documents\programing> cd summer2019                      <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+PS C:\Users\John\Documents\programing\summer2019> python fake.py          <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+([0, 0.05, 0.1, 0.15000000000000002, 0.2, 0.25, 0.3, 0.35, 0.39999999999999997, 0.44999999999999996, 0.49999999999999994, 0.54
+99999999999999, 0.6, 0.65, 0.7000000000000001, 0.7500000000000001, 0.8000000000000002, 0.8500000000000002, 0.9000000000000002,
+ 0.9500000000000003], [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2], [0
+.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01])
+PS C:\Users\John\Documents\programing\summer2019> 
