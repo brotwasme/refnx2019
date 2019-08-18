@@ -6,7 +6,7 @@ from scipy import special
 from refnx.dataset import ReflectDataset
 from refnx.analysis import CurveFitter, Objective, Transform, parameter, possibly_create_parameter, Parameters
 from refnx.reflect import ReflectModel, SLD, Erf, Component
-from refnx.refnx import Spline, structure
+#from refnx.refnx import Spline, structure
 
 # |       .        o           .       |
 # air-pro, phi-pho, center, mirror (i-o), pro-wat 
@@ -15,9 +15,9 @@ from refnx.refnx import Spline, structure
 # air-pro to cetre = a, b is from area taken up
 
 class param():
-    def __init__(real=0, image=0, name='unknown', thickness=0,) 
+    def __init__(real=0, image=0, name='unknown', thickness=0):
         self.real = real
-        
+        pass
         
 
 class eggs(Component):#
@@ -45,8 +45,8 @@ class bsla_thesis(Component): #as in thesis
                 name='%s - interface_width_air_solvent' % name)
         self.interface_width_protein_solvent = possibly_create_parameter(0.1,
                 name='%s - interface_width_protein_solvent' % name)
-        self.sld_of_deuterated_protein = possibly_create_parameter(3.23*(10**(-6)),
-                name='%s - sld_of_deuterated_protein' % name)
+        self.sld_of_protein = possibly_create_parameter(3.23*(10**(-6)),
+                name='%s - sld_of_protein' % name)
 #         self.semi_axis_a = possibly_create_parameter(a,
 #                 name='%s - semi_axis_a' % name)
 #         self.semi_axis_b = possibly_create_parameter(b,
@@ -59,10 +59,20 @@ class bsla_thesis(Component): #as in thesis
         self.volume_of_water_molecule = 30
         self.major_axis_length = 55
         self.d = (self.c - self.a)/self.volume_of_water_molecule
+        
+        b_o=0.5843*10**-4
+        b_d=0.6671*10**-4
+        b_d2o = b_o + 2*b_d
+        self.sld_d2o = b_d2o/self.volume_of_water_molecule
 
     def __call__(self, z, structure):
         self.calculations()
-        pass
+        area_prot = self.area_protein(z)
+        area_wat = self.area_water(z)
+        area_total = area_wat+area_prot
+        sld_prot = self.sld_protein(area_prot,area_total)
+        sld_wat = sld_water(area_wat,area_total)
+        return sld_prot+sld_wat
 
     @property
     def  parameters(self):
@@ -73,16 +83,16 @@ class bsla_thesis(Component): #as in thesis
                   self.number_of_water_molecules,
                   self.interface_width_air_solvent,
                   self.interface_width_protein_solvent,
-                  self.sld_of_deuterated_protein])
+                  self.sld_of_protein])
         return p
 
     def logp(self):
-        full = np.arange(150)
-        a_p = np.array(list(map(self.area_protein, full)))
-        a_w = np.array(list(map(self.area_water, full)))
-        max_w = max(a_w)
-        max_p = max(a_p)
-        max_a = max_w if max_w > max_p else max_p
+        #full = np.arange(150)
+        #a_p = np.array(list(map(self.area_protein, full)))
+        #a_w = np.array(list(map(self.area_water, full)))
+        #max_w = max(a_w)
+        #max_p = max(a_p)
+        #max_a = max_w if max_w > max_p else max_p
         return 0
 
     def calculations(self):
@@ -100,6 +110,10 @@ class bsla_thesis(Component): #as in thesis
         final_bit = 2*self.delta_c - second_bit
         return first_bit*second_bit*final_bit
 
+    def sld_protein(self, area_p, area_total):
+        ratio_area = area_p/area_total
+        return ratio_area * self.sld_of_protein
+
     def area_water(self, z):
         water_length = (self.interface_air_protein 
                         + self.protein_length - self.interface_protein_solvent)
@@ -109,6 +123,22 @@ class bsla_thesis(Component): #as in thesis
                       - Erf((z, - z_s - 0.5*self.d)/self.interface_width_air_solvent))
         return first_bit*second_bit
 
+    def sld_water(self, area_w, area_total):
+        ratio_area = area_w/area_total
+        return ratio_area * self.sld_d2o
+    
+    def slabs(self,structure=None):
+        #in style of https://refnx.readthedocs.io/en/latest/_modules/refnx/reflect/spline.html#Spline
+        length = self.interface_protein_solvent + self.interface_width_protein_solvent
+        no_slabs = length/1.
+        thickness_slabs = length/no_slabs
+        slabs = np.zeros((int(no_slabs), 5))
+        slabs[:,0] = thisckness_slabs
+        slabs[-1,3] = 0.5
+        distance = np.cumsum(slabs[..., 0]) - 0.5 * thickness_slab
+        slabs= self(dist,structre)
+        
+        return slabs
 
 #
 #air = SLD(value=0+0j, name='air')
@@ -137,6 +167,7 @@ class bsla_non(Component): #not as in thesis
         #area per molecule, 
         super(bsla).__init__()
         name='bsla'
+        pass
 
     
     #for calculating unphysical thing
@@ -150,8 +181,8 @@ class bsla_non(Component): #not as in thesis
         pass
     
     
-class bsla_equation(Componemt): # equation based
-    def __init__(self, extent, vs, dz,name='bsla', microslab_max_thickness):
+class bsla_equation(Component): # equation based
+    def __init__(self, extent, vs, dz,name='bsla', microslab_max_thickness=1):
         pass
     
     def __call__(self, z):
