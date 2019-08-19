@@ -41,12 +41,14 @@ class bsla_thesis(Component): #as in thesis
                 name='%s - protein_length' % name)
         self.number_of_water_molecules = possibly_create_parameter(500.1,
                 name='%s - number_of_water_molecules' % name)
-        self.interface_width_air_solvent = possibly_create_parameter(0.1,
+        self.interface_width_air_solvent = possibly_create_parameter(15,
                 name='%s - interface_width_air_solvent' % name)
         self.interface_width_protein_solvent = possibly_create_parameter(0.1,
                 name='%s - interface_width_protein_solvent' % name)
         self.sld_of_protein = possibly_create_parameter(3.23*(10**(-6)),
                 name='%s - sld_of_protein' % name)
+        self.d2o_to_h2o_ratio = possibly_create_parameter(1.0,
+                name='%s - d2o_h2o_ratio' % name)
 #         self.semi_axis_a = possibly_create_parameter(a,
 #                 name='%s - semi_axis_a' % name)
 #         self.semi_axis_b = possibly_create_parameter(b,
@@ -59,19 +61,34 @@ class bsla_thesis(Component): #as in thesis
         self.volume_of_water_molecule = 30
         self.major_axis_length = 55
         self.d = (self.c - self.a)/self.volume_of_water_molecule
+        #print([self.interface_air_protein,
+        #          self.interface_protein_solvent,
+        #          self.protein_length,
+        #          self.number_of_water_molecules,
+        #          self.interface_width_air_solvent,
+        #          self.interface_width_protein_solvent,
+        #          self.sld_of_protein,
+        #          self.d2o_to_h2o_ratio])
         
-        b_o=0.5843*10**-4
-        b_d=0.6671*10**-4
-        b_d2o = b_o + 2*b_d
-        self.sld_d2o = b_d2o/self.volume_of_water_molecule
+#         b_o=0.5843*10**-4
+#         b_d=0.6671*10**-4
+#         b_h=-0.3739*10**-4
+#         b_d2o = b_o + 2*b_d
+#         b_d2o = 1.9185*10**-4
+#         b_h2o = -0.1635*10**-4
+        
+#         self.sld_d2o = b_d2o/self.volume_of_water_molecule
 
-    def __call__(self, z, structure):
+    def __call__(self, z, structure=None):
         self.calculations()
         area_prot = self.area_protein(z)
         area_wat = self.area_water(z)
+        print(area_wat)
+        print('cough')
+        print(area_prot)
         area_total = area_wat+area_prot
         sld_prot = self.sld_protein(area_prot,area_total)
-        sld_wat = sld_water(area_wat,area_total)
+        sld_wat = self.sld_water(area_wat,area_total)
         return sld_prot+sld_wat
 
     @property
@@ -83,7 +100,8 @@ class bsla_thesis(Component): #as in thesis
                   self.number_of_water_molecules,
                   self.interface_width_air_solvent,
                   self.interface_width_protein_solvent,
-                  self.sld_of_protein])
+                  self.sld_of_protein,
+                  self.d2o_to_h2o_ratio])
         return p
 
     def logp(self):
@@ -100,44 +118,74 @@ class bsla_thesis(Component): #as in thesis
 #         b = 16.5
 #         c = 27.5
 #         volume_of_water_molecule = 30
-        self.e = self.major_axis_length - self.protein_length
+        self.e = self.major_axis_length - self.protein_length.value
         self.delta_a = self.a + (self.d*self.e)
         self.delta_c = self.c - (self.d*self.e)
 
     def area_protein(self, z):
         first_bit = np.pi*self.delta_a*self.b/(self.delta_c**2)
-        second_bit = z - self.interface_air_protein
+        second_bit = z - self.interface_air_protein.value
         final_bit = 2*self.delta_c - second_bit
+#         print('f',np.pi, self.delta_a,self.b, self.delta_c, first_bit)
+#         print(second_bit)
+#         print(final_bit)
         return first_bit*second_bit*final_bit
 
     def sld_protein(self, area_p, area_total):
         ratio_area = area_p/area_total
-        return ratio_area * self.sld_of_protein
+        return ratio_area * self.sld_of_protein.value
 
-    def area_water(self, z):
-        water_length = (self.interface_air_protein 
-                        + self.protein_length - self.interface_protein_solvent)
-        z_s = self.interface_protein_solvent*0.5*water_length # calc
-        first_bit = self.number_of_water_molecules*self.volume_of_water_molecule/2*self.d
-        second_bit = (Erf((z, - z_s + 0.5*self.d)/self.interface_width_air_solvent)
-                      - Erf((z, - z_s - 0.5*self.d)/self.interface_width_air_solvent))
-        return first_bit*second_bit
+    def area_water(self, zs):
+        water_length = (self.interface_air_protein.value
+                        + self.protein_length.value
+                        - self.interface_protein_solvent.value)
+        z_s = self.interface_protein_solvent.value+0.5*water_length # calc
+        first_bit = (self.number_of_water_molecules.value
+                     *self.volume_of_water_molecule/(2*water_length))
+        #print(self.interface_width_air_solvent.value, type(self.interface_width_air_solvent.value))
+        #print(z,'\n')
+        #print(z, z_s ,0.5,self.d, self.interface_width_air_solvent.value,
+        #     special.erf((z - z_s + 0.5*self.d)
+        #                  /self.interface_width_air_solvent.value))
+        second_bits= np.copy(zs)
+        print(z_s, water_length, self.interface_width_air_solvent.value)
+        for i in range(len(zs)):
+            #second_bits[i] = (special.erf((zs[i] - z_s + 0.5*water_length)
+            #                  /(self.interface_width_air_solvent.value*np.sqrt(2))
+            #              - special.erf((zs[i] - z_s - 0.5*water_length)
+            #                    /(self.interface_width_air_solvent.value*np.sqrt(2))))
+            print('helo',
+                  second_bits[i], 
+                  zs[i],
+                  zs[i] - z_s + 0.5*water_length, 
+                  zs[i] - z_s - 0.5*water_length,
+                  special.erf((zs[i] - z_s + 0.5*water_length)
+                    /self.interface_width_air_solvent.value),
+                  special.erf((zs[i] - z_s - 0.5*self.d)
+                    /self.interface_width_air_solvent.value))
+        return 1#first_bit*second_bits
 
     def sld_water(self, area_w, area_total):
+        b_d2o = 1.9185*10**-4
+        b_h2o = -0.1635*10**-4
+        sld_d2o = b_d2o/self.volume_of_water_molecule
+        sld_h2o = b_h2o/self.volume_of_water_molecule
+        sld_solvent = (self.d2o_to_h2o_ratio.value*sld_d2o +
+                            (1-self.d2o_to_h2o_ratio.value)*sld_h2o)
         ratio_area = area_w/area_total
-        return ratio_area * self.sld_d2o
+        return ratio_area * sld_solvent
     
     def slabs(self,structure=None):
         #in style of https://refnx.readthedocs.io/en/latest/_modules/refnx/reflect/spline.html#Spline
-        length = self.interface_protein_solvent + self.interface_width_protein_solvent
+        length = (self.interface_air_protein.value
+                        + self.protein_length.value)
         no_slabs = length/1.
         thickness_slabs = length/no_slabs
         slabs = np.zeros((int(no_slabs), 5))
-        slabs[:,0] = thisckness_slabs
+        slabs[:,0] = thickness_slabs
         slabs[-1,3] = 0.5
-        distance = np.cumsum(slabs[..., 0]) - 0.5 * thickness_slab
-        slabs= self(dist,structre)
-        
+        distance = np.cumsum(slabs[..., 0]) - 0.5 * thickness_slabs
+        slabs= self(distance,structure)
         return slabs
 
 #
@@ -188,4 +236,23 @@ class bsla_equation(Component): # equation based
     def __call__(self, z):
         pass
     
+def test_run():
+    from refnx.dataset import Data1D
+    from refnx.dataset import ReflectDataset
+    import refnx
+    import data_in
+    data = data_in.data_in('d2o/29553_54.dat')
+    # dataset = data # ...
+    data = Data1D(data) 
+    from make_egg import bsla_thesis
+    bt = bsla_thesis()
+    bt.interface_air_protein.setp(vary=True, bounds=(11, 24))
+    from refnx.reflect import ReflectModel
+    model = ReflectModel(bt)
+    from refnx.analysis import Transform, CurveFitter, Objective
+    obj = Objective(model,data)
+    fitter = CurveFitter(obj)
+    fitter.fit('differential_evolution');
     
+if __name__ == '__main__':
+    test_run()
