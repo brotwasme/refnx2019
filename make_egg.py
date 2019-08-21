@@ -6,7 +6,7 @@ from scipy import special
 from refnx.dataset import ReflectDataset
 from refnx.analysis import CurveFitter, Objective, Transform, parameter, possibly_create_parameter, Parameters
 from refnx.reflect import ReflectModel, SLD, Erf, Component
-#from refnx.refnx import Spline, structure
+from refnx.reflect import structure
 
 # |       .        o           .       |
 # air-pro, phi-pho, center, mirror (i-o), pro-wat 
@@ -83,12 +83,13 @@ class bsla_thesis(Component): #as in thesis
         self.calculations()
         area_prot = self.area_protein(z)
         area_wat = self.area_water(z)
-        print(area_wat)
-        print('cough')
-        print(area_prot)
+        #print(area_wat)
+        #print('cough')
+        #print(area_prot)
         area_total = area_wat+area_prot
         sld_prot = self.sld_protein(area_prot,area_total)
         sld_wat = self.sld_water(area_wat,area_total)
+        #print("last",len(sld_prot),len(sld_wat))
         return sld_prot+sld_wat
 
     @property
@@ -123,16 +124,19 @@ class bsla_thesis(Component): #as in thesis
         self.delta_c = self.c - (self.d*self.e)
 
     def area_protein(self, z):
+        identity = np.ones(len(z))
         first_bit = np.pi*self.delta_a*self.b/(self.delta_c**2)
-        second_bit = z - self.interface_air_protein.value
-        final_bit = 2*self.delta_c - second_bit
+        second_bit = z - identity*self.interface_air_protein.value
+        final_bit = identity*2*self.delta_c - second_bit
 #         print('f',np.pi, self.delta_a,self.b, self.delta_c, first_bit)
 #         print(second_bit)
 #         print(final_bit)
-        return first_bit*second_bit*final_bit
+        #print("pro lengths",len(second_bit), len(final_bit))
+        return first_bit*np.multiply(second_bit,final_bit)
 
     def sld_protein(self, area_p, area_total):
         ratio_area = area_p/area_total
+        #print("pro sl lengths",len(area_p),len(ratio_area))
         return ratio_area * self.sld_of_protein.value
 
     def area_water(self, zs):
@@ -148,22 +152,23 @@ class bsla_thesis(Component): #as in thesis
         #     special.erf((z - z_s + 0.5*self.d)
         #                  /self.interface_width_air_solvent.value))
         second_bits= np.copy(zs)
-        print(z_s, water_length, self.interface_width_air_solvent.value)
+        #print(z_s, water_length, self.interface_width_air_solvent.value)
         for i in range(len(zs)):
-            #second_bits[i] = (special.erf((zs[i] - z_s + 0.5*water_length)
-            #                  /(self.interface_width_air_solvent.value*np.sqrt(2))
-            #              - special.erf((zs[i] - z_s - 0.5*water_length)
-            #                    /(self.interface_width_air_solvent.value*np.sqrt(2))))
-            print('helo',
-                  second_bits[i], 
-                  zs[i],
-                  zs[i] - z_s + 0.5*water_length, 
-                  zs[i] - z_s - 0.5*water_length,
-                  special.erf((zs[i] - z_s + 0.5*water_length)
-                    /self.interface_width_air_solvent.value),
-                  special.erf((zs[i] - z_s - 0.5*self.d)
-                    /self.interface_width_air_solvent.value))
-        return 1#first_bit*second_bits
+            second_bits[i] = ( special.erf( (zs[i] - z_s + 0.5*water_length)
+                              / (self.interface_width_air_solvent.value*np.sqrt(2)) )
+                          - special.erf( (zs[i] - z_s - 0.5*water_length)
+                                / (self.interface_width_air_solvent.value*np.sqrt(2)) ) )
+        #print("wat lengths",len(second_bits))
+        return first_bit*second_bits
+#             print('helo',
+#                   second_bits[i], 
+#                   zs[i],
+#                   zs[i] - z_s + 0.5*water_length, 
+#                   zs[i] - z_s - 0.5*water_length,
+#                   special.erf((zs[i] - z_s + 0.5*water_length)
+#                     /self.interface_width_air_solvent.value),
+#                   special.erf((zs[i] - z_s - 0.5*self.d)
+#                     /self.interface_width_air_solvent.value))
 
     def sld_water(self, area_w, area_total):
         b_d2o = 1.9185*10**-4
@@ -185,7 +190,9 @@ class bsla_thesis(Component): #as in thesis
         slabs[:,0] = thickness_slabs
         slabs[-1,3] = 0.5
         distance = np.cumsum(slabs[..., 0]) - 0.5 * thickness_slabs
-        slabs= self(distance,structure)
+        slabs[:,1] = self(distance,structure)
+        #print("slabs",slabs)
+        #slabs  = structure.__profile_slicer(distance,slabs)
         return slabs
 
 #
@@ -237,6 +244,7 @@ class bsla_equation(Component): # equation based
         pass
     
 def test_run():
+    print("\n\n\n")
     from refnx.dataset import Data1D
     from refnx.dataset import ReflectDataset
     import refnx
@@ -245,10 +253,30 @@ def test_run():
     # dataset = data # ...
     data = Data1D(data) 
     from make_egg import bsla_thesis
+#     air = SLD(0)
+#     air = air(0,0)
     bt = bsla_thesis()
-    bt.interface_air_protein.setp(vary=True, bounds=(11, 24))
+    bt.interface_protein_solvent.setp(vary=True, bounds=(11, 40))
+    bt.protein_length.setp(vary=True, bounds=(25, 55))
+    bt.number_of_water_molecules.setp(vary=True, bounds=(1, 10000))
+    bt.interface_width_air_solvent.setp(vary=True, bounds=(0, 30))
+    bt.interface_width_protein_solvent.setp(vary=True, bounds=(0, 5))
+    bt.sld_of_protein.setp(vary=True, bounds=(1.92*(10**(-6)), 6.21*(10**(-6))))
+    bt.d2o_to_h2o_ratio.setp(vary=True, bounds=(0, 1))
+#     if isinstance(bt, Component):
+#         print("it is comp")
+#     if isinstance(bt, Structure):
+#         print("it is")
+    #print(bt.parameters)
+#     d2o = 1.9185/0.3
+#     h2o = -0.1635/0.3
+#     solvent = SLD((bt.d2o_to_h2o_ratio.value*d2o + (1-bt.d2o_to_h2o_ratio.value)*h2o))
+#     solvent = solvent(0,0)
+#     from refnx.reflect import Structure
+#     structure = air|bt|solvent
+#     structure.name = "bsla"
     from refnx.reflect import ReflectModel
-    model = ReflectModel(bt)
+    model = ReflectModel(bt)#structure)
     from refnx.analysis import Transform, CurveFitter, Objective
     obj = Objective(model,data)
     fitter = CurveFitter(obj)
