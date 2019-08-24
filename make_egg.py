@@ -45,7 +45,7 @@ class bsla_thesis(Component): #as in thesis
                 name='%s - interface_width_air_solvent' % name)
         self.interface_width_protein_solvent = possibly_create_parameter(0.1,
                 name='%s - interface_width_protein_solvent' % name)
-        self.sld_of_protein = possibly_create_parameter(3.23*(10**(-6)),
+        self.sld_of_protein = possibly_create_parameter(3.23, #*(10**(-6))
                 name='%s - sld_of_protein' % name)
         self.d2o_to_h2o_ratio = possibly_create_parameter(1.0,
                 name='%s - d2o_h2o_ratio' % name)
@@ -171,10 +171,10 @@ class bsla_thesis(Component): #as in thesis
 #                     /self.interface_width_air_solvent.value))
 
     def sld_water(self, area_w, area_total):
-        b_d2o = 1.9185*10**-4
-        b_h2o = -0.1635*10**-4
-        sld_d2o = b_d2o/self.volume_of_water_molecule
-        sld_h2o = b_h2o/self.volume_of_water_molecule
+        b_d2o = 1.9185#*10**-4
+        b_h2o = -0.1635#*10**-4
+        sld_d2o = 100*b_d2o/self.volume_of_water_molecule
+        sld_h2o = 100*b_h2o/self.volume_of_water_molecule
         sld_solvent = (self.d2o_to_h2o_ratio.value*sld_d2o +
                             (1-self.d2o_to_h2o_ratio.value)*sld_h2o)
         ratio_area = area_w/area_total
@@ -261,7 +261,7 @@ def test_run():
     bt.number_of_water_molecules.setp(vary=True, bounds=(1, 10000))
     bt.interface_width_air_solvent.setp(vary=True, bounds=(0, 30))
     bt.interface_width_protein_solvent.setp(vary=True, bounds=(0, 5))
-    bt.sld_of_protein.setp(vary=True, bounds=(1.92*(10**(-6)), 6.21*(10**(-6))))
+    bt.sld_of_protein.setp(vary=True, bounds=(1.92, 6.21)) # *(10**(-6))
     bt.d2o_to_h2o_ratio.setp(vary=True, bounds=(0, 1))
 #     if isinstance(bt, Component):
 #         print("it is comp")

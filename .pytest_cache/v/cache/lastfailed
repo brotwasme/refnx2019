@@ -1,5 +1,7 @@
 {
-  "refnx/_lib/test/test_util.py": true,
-  "refnx/reduce/test/test_rebin.py": true,
-  "refnx/reflect/_app/test/test_app.py": true
+  "analysis/test/test_curvefitter.py::TestCurveFitter::test_mcmc": true,
+  "reflect/_app/test/test_app.py::test_add_spline_save": true,
+  "reflect/_app/test/test_app.py::test_myapp": true,
+  "reflect/test/test__interactive_modeller.py::Test__InteractiveModeller::test_fit_runs": true,
+  "reflect/test/test__interactive_modeller.py::Test__InteractiveModeller::test_run_app": true
 }
