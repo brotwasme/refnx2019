@@ -251,13 +251,13 @@ def setup_package():
 
 
 if __name__ == '__main__':
-    a = open("start.txt, 'w')
+    a = open("start.txt", 'w')
         try:
             a.write("first")
         finally:
             a.close()
     setup_package()
-    a = open("done.txt, 'w')
+    a = open("done.txt", 'w')
         try:
             a.write("first")
         finally:
