@@ -68,11 +68,11 @@ def get_version_info():
     FULLVERSION = VERSION
     if os.path.exists('.git'):
         GIT_REVISION = git_version()
-    elif os.path.exists('refnx2019/version.py'):
+    elif os.path.exists('refnx/version.py'):
         # must be a source distribution, use existing version file
         # load it as a separate module to not load refnx/__init__.py
         import imp
-        version = imp.load_source('refnx2019.version', 'refnx2019/version.py')
+        version = imp.load_source('refnx.version', 'refnx/version.py')
         GIT_REVISION = version.git_revision
     else:
         GIT_REVISION = "Unknown"
@@ -83,7 +83,7 @@ def get_version_info():
     return FULLVERSION, GIT_REVISION
 
 
-def write_version_py(filename='refnx2019/version.py'):
+def write_version_py(filename='refnx/version.py'):
     cnt = """
 # THIS FILE IS GENERATED FROM REFNX SETUP.PY
 short_version = '%(version)s'
